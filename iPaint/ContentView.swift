@@ -43,21 +43,7 @@ struct ContentView: View {
                     } else {
                         // Non-editable title with navigation link
                         NavigationLink {
-                            VStack(alignment: .center) {
-                                TextField("Add title", text: Binding(
-                                    get: { item.title },
-                                    set: { newValue in
-                                        item.title = newValue
-                                    }
-                                ))
-                                .font(.headline)
-                                .bold()
-                                .padding(.top, 20)
-                                .frame(maxWidth: .infinity, alignment: .top)
-                                .multilineTextAlignment(.center)
-                                .textFieldStyle(PlainTextFieldStyle())
-                                Spacer()
-                            }
+                            ItemDetailView(item: item)
                         } label: {
                             Text(item.title.isEmpty ? "Add title" : item.title)
                         }
