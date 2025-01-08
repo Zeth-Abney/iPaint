@@ -12,7 +12,7 @@ import SwiftData
 final class Item {
     let timestamp: Date
     var title: String
-    var details: String?
+    var details: String? 
     
     init(timestamp: Date = Date(), title: String = "", details: String? = nil) {
         self.timestamp = timestamp

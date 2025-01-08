@@ -59,38 +59,42 @@ struct ItemDetailView: View {
                 Text("Item Details")
                     .font(.title2)
                     .bold()
-                    .foregroundColor(.black)
+                    .foregroundColor(.black) // Ensure title is visible
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Title: \(item.title)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.black) // Ensure title text is visible
                     Text("Timestamp: \(item.timestamp.formatted(date: .abbreviated, time: .shortened))")
-                        .foregroundColor(.gray)
-
+                        .foregroundColor(.gray) // Gray for secondary text
+                    
                     Text("Details:")
                         .font(.headline)
                         .foregroundColor(.black)
+                    
+                    ZStack(alignment: .topLeading) {
+                        // Placeholder text
+                        if (item.details ?? "").isEmpty {
+                            Text("Add details...")
+                                .foregroundColor(.gray) // Placeholder color
+                                .padding(.top, 8) // Align with TextEditor content
+                                .padding(.leading, 5) // Adjust for left padding
+                        }
 
-                    TextEditor(text: Binding(
-                        get: { item.details ?? "" },
-                        set: { newValue in item.details = newValue }
-                    ))
-                    .frame(height: 100)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(8)
-                    .shadow(radius: 4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                    )
+                        // Editable TextEditor
+                        TextEditor(text: Binding(
+                            get: { item.details ?? "" },
+                            set: { newValue in item.details = newValue }
+                        ))
+                        .frame(height: 100) // Multiline editing
+                        .padding(.top, 8) // Match placeholder spacing
+                        .foregroundColor(.black) // User input in black
+                        .background(Color.clear) // Ensure transparency
+                    }
                 }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(8)
+                .padding() // General padding for content
             }
-            .padding()
-            .background(Color.white)
+            .padding(.horizontal, 20)
+            .background(Color.white) // Background for popup
             .cornerRadius(10)
             .shadow(radius: 10)
         }
