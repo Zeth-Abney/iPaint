@@ -71,7 +71,7 @@ struct ContentView: View {
     // Add item to the list
     private func addItem() {
         withAnimation {
-            let newItem = Item(timestamp: Date())
+            let newItem = Item()
             modelContext.insert(newItem)
         }
     }
