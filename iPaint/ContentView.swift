@@ -11,8 +11,18 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
+    @Query private var metadata: [AppMetadata]
     @State private var isEditing: Bool = false // Track edit mode status
 
+    private func getMetadata() -> AppMetadata {
+            if let existing = metadata.first {
+                return existing
+            }
+        let newMetadata = AppMetadata()
+            modelContext.insert(newMetadata)
+            return newMetadata
+        }
+    
     var body: some View {
         NavigationSplitView {
             // Sidebar (List of items)
@@ -25,6 +35,7 @@ struct ContentView: View {
                                 get: { item.title },
                                 set: { newValue in
                                     item.title = newValue
+                                    item.lastEdited = Date()
                                 }
                             ))
                             .textFieldStyle(PlainTextFieldStyle())
@@ -71,9 +82,11 @@ struct ContentView: View {
     // Add item to the list
     private func addItem() {
         withAnimation {
-            let newItem = Item()
-            modelContext.insert(newItem)
-        }
+                    let meta = getMetadata()
+                    meta.lastUsedIndex += 1
+                    let newItem = Item(itemIndex: meta.lastUsedIndex)
+                    modelContext.insert(newItem)
+                }
     }
 
     // Delete items in bulk (used for swipe-to-delete in non-edit mode)

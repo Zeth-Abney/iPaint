@@ -10,12 +10,16 @@ import SwiftData
 
 @Model
 final class Item {
-    let timestamp: Date
+    let timestamp: Date       // Creation timestamp
+    let itemIndex: Int        // Unique forever-index
+    var lastEdited: Date      // Last edit timestamp
     var title: String
     var details: String? 
     
-    init(timestamp: Date = Date(), title: String = "", details: String? = nil) {
+    init(timestamp: Date = Date(), itemIndex: Int, title: String = "", details: String? = nil) {
         self.timestamp = timestamp
+        self.itemIndex = itemIndex
+        self.lastEdited = timestamp
         self.title = title
         self.details = details
     }
