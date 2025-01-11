@@ -8,13 +8,19 @@
 import SwiftUI
 import SwiftData
 
+enum Brush: String, CaseIterable {
+    case 🖋️, 🖌️
+}
+
 struct ItemDetailView: View {
     @Bindable var item: Item // Use @Bindable for SwiftData-managed models
     @State private var showPopup: Bool = false // Track popup visibility
+    @State private var selectedBrush: Brush = .🖋️
 
+    // Main content
     var body: some View {
+        // header sectoin
         ZStack {
-            // Main content
             VStack(alignment: .center) {
                 TextField("Add title", text: Binding(
                     get: { item.title },
@@ -28,15 +34,27 @@ struct ItemDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .top)
                     .multilineTextAlignment(.center)
                     .textFieldStyle(PlainTextFieldStyle())
-
                 Spacer()
+                
             }
+            VStack {
+                Spacer()
+                Picker("Brush", selection:$selectedBrush) {
+                    ForEach(Brush.allCases, id: \.self) { brush in
+                        Text(brush.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: UIScreen.main.bounds.width - 80)
+            }
+            .padding()
 
             // Popup overlay
             if showPopup {
                 popupOverlay
             }
         }
+        // toolbar section
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
@@ -48,6 +66,9 @@ struct ItemDetailView: View {
             }
         }
     }
+    
+    
+    
 
     // MARK: - Popup Overlay
     private var popupOverlay: some View {
