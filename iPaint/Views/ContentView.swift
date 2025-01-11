@@ -82,9 +82,9 @@ struct ContentView: View {
     // Add item to the list
     private func addItem() {
         withAnimation {
-                    let meta = getMetadata()
-                    meta.lastUsedIndex += 1
-                    let newItem = Item(itemIndex: meta.lastUsedIndex)
+                    _ = getMetadata()
+                    AppMetadata.lastUsedIndex += 1
+                    let newItem = Item(itemIndex: AppMetadata.lastUsedIndex)
                     modelContext.insert(newItem)
                 }
     }
