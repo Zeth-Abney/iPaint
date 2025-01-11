@@ -8,18 +8,26 @@
 import SwiftUI
 import SwiftData
 
+struct Line {
+    var points = [CGPoint]()
+    var color: Color = .red
+    var lineWidth: Double = 1.0
+}
 
 struct ItemDetailView: View {
     @Bindable var item: Item // Use @Bindable for SwiftData-managed models
     @State private var showPopup: Bool = false // Track popup visibility
-//    @State private var selectedBrush: Brush = .🖋️
+    
+    @State private var currentLine = Line()
+    @State private var lines: [Line] = []
+
 
     // MARK: Main content
     var body: some View {
         
         ZStack {
-            // header section
-            VStack(alignment: .center) {
+            VStack(spacing: 0) {
+                // header section
                 TextField("Add title", text: Binding(
                     get: { item.title },
                     set: { newValue in
@@ -34,9 +42,29 @@ struct ItemDetailView: View {
                     .textFieldStyle(PlainTextFieldStyle())
                 Spacer()
                 
-            }
-            // body section
-            VStack {
+                // canvas section
+                Canvas { context, size in
+                                for line in lines {
+                                    var path = Path()
+                                    path.addLines(line.points)
+                                    context.stroke(path, with: .color(line.color),
+                                                   lineWidth: line.lineWidth)
+                                }
+                            }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .border(Color.blue)
+                .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                    .onChanged({ value in
+                        let newPoint = value.location
+                        currentLine.points.append(newPoint)
+                        self.lines.append(currentLine)
+                    })
+                    .onEnded({ value in
+                        self.lines.append(currentLine)
+                        self.currentLine = Line(points: [], color: currentLine.color, lineWidth: currentLine.lineWidth)
+                    })
+                )
+            
                 Spacer()
                 BrushPickerView()
             }
