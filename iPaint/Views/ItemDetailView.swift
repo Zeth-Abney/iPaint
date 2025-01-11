@@ -22,6 +22,7 @@ struct ItemDetailView: View {
     @State private var lines: [Line] = []
 
 
+
     // MARK: Main content
     var body: some View {
         
