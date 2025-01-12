@@ -10,8 +10,8 @@ import SwiftData
 
 @Model
 final class Item {
-    let timestamp: Date       // Creation timestamp
-    let itemIndex: Int        // Unique forever-index
+    var timestamp: Date       // Creation timestamp
+    var itemIndex: Int        // Unique forever-index
     var lastEdited: Date      // Last edit timestamp
     var title: String
     var details: String?

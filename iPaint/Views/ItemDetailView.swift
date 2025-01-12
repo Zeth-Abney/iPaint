@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// MARK: codable lines on canvas
 struct Line: Codable {
     var points: [CGPoint]
     var color: Color
@@ -57,6 +58,7 @@ struct Line: Codable {
         }
 }
 
+// MARK: main item view content
 struct ItemDetailView: View {
     @Bindable var item: Item
     @State private var showPopup: Bool = false
@@ -99,6 +101,7 @@ struct ItemDetailView: View {
         saveCanvasData()
     }
     
+    // MARK: item view body
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
