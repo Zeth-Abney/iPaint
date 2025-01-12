@@ -12,20 +12,43 @@ struct Line {
     var points = [CGPoint]()
     var color: Color = .red
     var lineWidth: Double = 1.0
+    var type: Brush
+    
+    init(points: [CGPoint] = [], color: Color = .red, lineWidth: Double = 1.0, type: Brush = .pen) {
+            self.points = points
+            self.color = color
+            self.lineWidth = lineWidth
+            self.type = type
+        }
 }
 
 struct ItemDetailView: View {
-    @Bindable var item: Item // Use @Bindable for SwiftData-managed models
+    @Bindable var item: Item
     @State private var showPopup: Bool = false // Track popup visibility
-    
     @State private var currentLine = Line()
     @State private var lines: [Line] = []
+    @State private var currentColor: Color = .black
+    @State private var currentThickness: CGFloat = 2.0
+    @State private var currentBrush: Brush = .pen
 
-
-
+    private func eraseLines(at point: CGPoint) {
+            lines = lines.filter { line in
+                // Don't filter out eraser lines
+                if line.type == .eraser {
+                    return true
+                }
+                
+                // Check if any point in the line is within erasing distance
+                let eraserRadius = currentThickness
+                return !line.points.contains { linePoint in
+                    let distance = sqrt(pow(linePoint.x - point.x, 2) + pow(linePoint.y - point.y, 2))
+                    return distance <= eraserRadius
+                }
+            }
+        }
+    
     // MARK: Main content
     var body: some View {
-        
         ZStack {
             VStack(spacing: 0) {
                 // header section
@@ -45,29 +68,61 @@ struct ItemDetailView: View {
                 
                 // canvas section
                 Canvas { context, size in
-                                for line in lines {
-                                    var path = Path()
-                                    path.addLines(line.points)
-                                    context.stroke(path, with: .color(line.color),
-                                                   lineWidth: line.lineWidth)
-                                }
+                            for line in lines {
+                                var path = Path()
+                                path.addLines(line.points)
+                                if line.type == .eraser {
+                                        // Skip rendering eraser lines
+                                        continue
+                                    }
+                                context.stroke(path, with: .color(line.color),
+                                               lineWidth: line.lineWidth)
                             }
+                        }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .border(Color.blue)
                 .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
                     .onChanged({ value in
-                        let newPoint = value.location
-                        currentLine.points.append(newPoint)
-                        self.lines.append(currentLine)
-                    })
-                    .onEnded({ value in
-                        self.lines.append(currentLine)
-                        self.currentLine = Line(points: [], color: currentLine.color, lineWidth: currentLine.lineWidth)
-                    })
+                                    let newPoint = value.location
+                                    
+                                    if currentBrush == .eraser {
+                                        eraseLines(at: newPoint)
+                                        // Create an eraser line for tracking (won't be rendered)
+                                        if currentLine.points.isEmpty {
+                                            currentLine = Line(points: [],
+                                                            color: .clear,
+                                                            lineWidth: currentThickness,
+                                                            type: .eraser)
+                                        }
+                                    } else {
+                                        if currentLine.points.isEmpty {
+                                            currentLine = Line(points: [],
+                                                            color: currentColor,
+                                                            lineWidth: currentThickness,
+                                                            type: currentBrush)
+                                        }
+                                    }
+                                    
+                                    currentLine.points.append(newPoint)
+                                    
+                                    // Remove the previous instance of the current line if it exists
+                                    if let lastIndex = lines.lastIndex(where: { $0.points == currentLine.points.dropLast() }) {
+                                        lines.remove(at: lastIndex)
+                                    }
+                                    lines.append(currentLine)
+                            })
+                        .onEnded({ value in
+                                    if currentBrush != .eraser {
+                                        self.lines.append(currentLine)
+                                    }
+                                    self.currentLine = Line()
+                            })
                 )
             
                 Spacer()
-                BrushPickerView()
+                BrushPickerView(currentColor: $currentColor,
+                                currentThickness: $currentThickness,
+                                currentBrush: $currentBrush)
             }
             .padding()
 

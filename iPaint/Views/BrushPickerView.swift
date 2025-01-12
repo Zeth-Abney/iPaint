@@ -20,20 +20,48 @@ struct BrushSettings {
     var thickness: CGFloat = 2.0
 }
 
+struct BrushState {
+    var settings: BrushSettings
+    var isSelected: Bool
+}
+
 // brush tool bar
 public struct BrushPickerView: View {
+    @State private var brushStates: [Brush: BrushState] = Dictionary(
+            uniqueKeysWithValues: Brush.allCases.map {
+                ($0, BrushState(settings: BrushSettings(), isSelected: false))
+            }
+        )
+    
     @State private var selectedBrush: Brush = .pen
     @State private var showSettingsFor: Brush? = nil
-    @State private var settings = BrushSettings()
+//    @State private var settings = BrushSettings()
+    
+    @Binding var currentColor: Color
+    @Binding var currentThickness: CGFloat
+    @Binding var currentBrush: Brush
     
     public var body: some View {
         ZStack(alignment: .bottom) { // Add a ZStack as container
             // Toolbar settings overlays
             ForEach(Brush.allCases, id: \.self) { brush in
                 if showSettingsFor == brush {
-                    BrushSettingsToolbar(settings: $settings)
-                        .offset(y: -80) // Adjust position above the brush bar
-                        .transition(.opacity)
+                    BrushSettingsToolbar(settings: Binding(
+                                            get: { brushStates[brush]?.settings ?? BrushSettings() },
+                                            set: { newSettings in
+                                                var updatedStates = brushStates
+                                                updatedStates[brush]?.settings = newSettings
+                                                brushStates = updatedStates
+                                                
+                                                // Update current stroke settings only for selected brush
+                                                if brush == selectedBrush {
+                                                    currentColor = newSettings.color
+                                                    currentThickness = newSettings.thickness
+                                                }
+                                            }
+                                        ))
+                                        .offset(y: -80)
+                                        .transition(.opacity)
                 }
             }
             
@@ -45,7 +73,12 @@ public struct BrushPickerView: View {
                             showSettingsFor = showSettingsFor == brush ? nil : brush
                         } else {
                             selectedBrush = brush
+                            currentBrush = brush
                             showSettingsFor = nil
+                            if let settings = brushStates[brush]?.settings {
+                                currentColor = settings.color
+                                currentThickness = settings.thickness
+                            }
                         }
                     } label: {
                         Text(brush.rawValue)
@@ -102,8 +135,22 @@ struct BrushSettingsToolbar: View {
     }
 }
 
+// sim preview
+struct BrushPickerPreview: View {
+    @State private var previewColor: Color = .black
+    @State private var previewThickness: CGFloat = 2.0
+    @State private var previewBrush: Brush = .pencil
+    
+    var body: some View {
+        BrushPickerView(currentColor: $previewColor,
+                        currentThickness: $previewThickness,
+                        currentBrush: $previewBrush)
+            .padding()
+            .background()
+    }
+}
+
+
 #Preview {
-    BrushPickerView()
-        .padding()
-        .background()
+    BrushPickerPreview()
 }
