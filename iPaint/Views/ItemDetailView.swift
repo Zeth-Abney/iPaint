@@ -111,12 +111,12 @@ struct ItemDetailView: View {
                                     }
                                     lines.append(currentLine)
                             })
-                        .onEnded({ value in
-                                    if currentBrush != .eraser {
-                                        self.lines.append(currentLine)
-                                    }
-                                    self.currentLine = Line()
-                            })
+                    .onEnded({ value in
+                                if currentBrush != .eraser {
+                                    self.lines.append(currentLine)
+                                }
+                                self.currentLine = Line()
+                        })
                 )
             
                 Spacer()
