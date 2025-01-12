@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-enum Brush: String, CaseIterable {
+enum Brush: String, CaseIterable, Codable {
     case pen = "🖋️"
     case pencil = "✏️"
     case bucket = "🪣"

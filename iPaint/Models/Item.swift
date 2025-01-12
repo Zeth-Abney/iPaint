@@ -14,13 +14,15 @@ final class Item {
     let itemIndex: Int        // Unique forever-index
     var lastEdited: Date      // Last edit timestamp
     var title: String
-    var details: String? 
+    var details: String?
+    var canvasData: Data?
     
-    init(timestamp: Date = Date(), itemIndex: Int, title: String = "", details: String? = nil) {
+    init(timestamp: Date = Date(), itemIndex: Int, title: String = "", details: String? = nil, canvasData: Data? = nil) {
         self.timestamp = timestamp
         self.itemIndex = itemIndex
         self.lastEdited = timestamp
         self.title = title
         self.details = details
+        self.canvasData = canvasData
     }
 }
