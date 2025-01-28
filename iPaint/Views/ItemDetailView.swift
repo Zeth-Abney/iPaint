@@ -103,7 +103,7 @@ struct ItemDetailView: View {
     
     // MARK: item view body
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 TextField("Add title", text: Binding(
                     get: { item.title },
@@ -114,12 +114,10 @@ struct ItemDetailView: View {
                 ))
                     .font(.headline)
                     .bold()
-                    .padding(.top, 20)
                     .frame(maxWidth: .infinity, alignment: .top)
                     .multilineTextAlignment(.center)
                     .textFieldStyle(PlainTextFieldStyle())
-                Spacer()
-                
+
                 Canvas { context, size in
                     for line in lines {
                         var path = Path()
@@ -175,13 +173,12 @@ struct ItemDetailView: View {
                         saveCanvasData()
                     })
                 )
-            
-                Spacer()
-                BrushPickerView(currentColor: $currentColor,
-                              currentThickness: $currentThickness,
-                              currentBrush: $currentBrush)
+                .ignoresSafeArea()
             }
-            .padding()
+//            .padding(.horizontal)
+            BrushPickerView(currentColor: $currentColor,
+                          currentThickness: $currentThickness,
+                          currentBrush: $currentBrush)
 
             if showPopup {
                 popupOverlay
@@ -200,7 +197,7 @@ struct ItemDetailView: View {
     }
     
     // MARK: info popup
-    private var popupOverlay: some View {
+private var popupOverlay: some View {
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
