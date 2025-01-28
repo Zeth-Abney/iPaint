@@ -5,6 +5,13 @@
 //  Created by Zeth Abney on 1/7/25.
 //
 
+//
+//  ContentView.swift
+//  iPaint
+//
+//  Created by Zeth Abney on 1/7/25.
+//
+
 import SwiftUI
 import SwiftData
 
@@ -27,7 +34,7 @@ struct ContentView: View {
         NavigationSplitView {
             // Sidebar (List of items)
             List {
-                ForEach(items) { item in
+                ForEach(items.sorted(by: { $0.itemIndex > $1.itemIndex })) { item in
                     if isEditing {
                         // Editable title in edit mode
                         HStack {
@@ -82,10 +89,10 @@ struct ContentView: View {
     // Add item to the list
     private func addItem() {
         withAnimation {
-                    _ = getMetadata()
-                    let newItem = Item(itemIndex: AppMetadata.lastUsedIndex)
-                    modelContext.insert(newItem)
-                }
+            _ = getMetadata()
+            let newItem = Item(itemIndex: AppMetadata.lastUsedIndex)
+            modelContext.insert(newItem)
+        }
     }
 
     // Delete items in bulk (used for swipe-to-delete in non-edit mode)
