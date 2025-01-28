@@ -199,6 +199,7 @@ struct ItemDetailView: View {
         }
     }
     
+    // MARK: info popup
     private var popupOverlay: some View {
         ZStack {
             Color.black.opacity(0.5)
