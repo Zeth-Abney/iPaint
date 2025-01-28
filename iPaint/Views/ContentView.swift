@@ -83,7 +83,6 @@ struct ContentView: View {
     private func addItem() {
         withAnimation {
                     _ = getMetadata()
-//                    AppMetadata.lastUsedIndex
                     let newItem = Item(itemIndex: AppMetadata.lastUsedIndex)
                     modelContext.insert(newItem)
                 }

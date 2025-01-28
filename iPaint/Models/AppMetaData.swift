@@ -10,7 +10,7 @@ import Foundation
 
 @Model
 final class AppMetadata {
-    static var lastUsedIndex: Int = -1
+    static var lastUsedIndex: Int = 0
     var itemIndex: Int
     
     init() {
