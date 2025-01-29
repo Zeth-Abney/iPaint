@@ -131,7 +131,7 @@ struct ItemDetailView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .border(Color.blue)
+//                .border(Color.blue)
                 .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
                     .onChanged({ value in
                         let newPoint = value.location

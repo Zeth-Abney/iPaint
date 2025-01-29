@@ -17,9 +17,34 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+//    @Query private var items: [Item]
+    @Query(sort: \Item.itemIndex, order: .reverse) private var items: [Item]
     @Query private var metadata: [AppMetadata]
     @State private var isEditing: Bool = false // Track edit mode status
+    
+    // sort menu properties
+    @State private var showSortMenu = false
+    @State private var sortOrder: SortOrder = .descending
+    @State private var sortBy: SortType = .itemIndex
+    
+    // enums for sorting options
+    enum SortOrder {
+        case ascending, descending
+        
+        var systemImage: String {
+            switch self {
+            case .ascending: return "arrow.up"
+            case .descending: return "arrow.down"
+            }
+        }
+    }
+    
+    enum SortType: String, CaseIterable {
+        case itemIndex = "Item #"
+        case title = "Title"
+        case dateCreated = "Date Created"
+        case lastEdited = "Last Edited"
+    }
 
     private func getMetadata() -> AppMetadata {
             if let existing = metadata.first {
@@ -30,14 +55,31 @@ struct ContentView: View {
             return newMetadata
         }
     
+    // Computed property for sorted items
+   private var sortedItems: [Item] {
+       var result = items
+       switch sortBy {
+       case .itemIndex:
+           result.sort { sortOrder == .ascending ? $0.itemIndex < $1.itemIndex : $0.itemIndex > $1.itemIndex }
+       case .title:
+           result.sort { sortOrder == .ascending ? $0.title < $1.title : $0.title > $1.title }
+       case .dateCreated:
+           result.sort { sortOrder == .ascending ? $0.timestamp < $1.timestamp : $0.timestamp > $1.timestamp }
+       case .lastEdited:
+           result.sort { sortOrder == .ascending ? $0.lastEdited < $1.lastEdited : $0.lastEdited > $1.lastEdited }
+       }
+       
+       return result
+   }
+    
     var body: some View {
         NavigationSplitView {
             // Sidebar (List of items)
             List {
-                ForEach(items.sorted(by: { $0.itemIndex > $1.itemIndex })) { item in
+                ForEach(sortedItems) { item in
                     if isEditing {
-                        // Editable title in edit mode
                         HStack {
+                            // Add TextField for editing title
                             TextField("Add title", text: Binding(
                                 get: { item.title },
                                 set: { newValue in
@@ -45,12 +87,12 @@ struct ContentView: View {
                                     item.lastEdited = Date()
                                 }
                             ))
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .multilineTextAlignment(.leading)
-
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.vertical, 4)
+                            
                             Spacer()
-
-                            // Delete button for each item
+                            
+                            // Keep the delete button
                             Button(role: .destructive) {
                                 deleteItem(item)
                             } label: {
@@ -58,8 +100,9 @@ struct ContentView: View {
                                     .foregroundColor(.red)
                             }
                         }
+                        .padding(.horizontal, 4)
                     } else {
-                        // Non-editable title with navigation link
+                        // Non-edit mode remains the same
                         NavigationLink {
                             ItemDetailView(item: item)
                         } label: {
@@ -70,6 +113,18 @@ struct ContentView: View {
                 .onDelete(perform: deleteItems) // Still supports swipe-to-delete in non-edit mode
             }
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showSortMenu.toggle()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.up.arrow.down")
+                            Image(systemName: sortOrder.systemImage)
+                                .font(.system(size: 8))
+                                .offset(y: 2)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(isEditing ? "Done" : "Edit") {
                         isEditing.toggle() // Toggle edit mode
@@ -81,11 +136,29 @@ struct ContentView: View {
                     }
                 }
             }
+            .overlay(
+                Group {
+                    if showSortMenu {
+                        GeometryReader { geometry in
+                            SortMenuView(sortBy: $sortBy, sortOrder: $sortOrder)
+                                .position(x: 120, y: 80) // Increased x value to move menu right
+                                .transition(.opacity)
+                        }
+                        .background(
+                            Color.black.opacity(0.001)
+                                .onTapGesture {
+                                    showSortMenu = false
+                                }
+                        )
+                    }
+                }
+            )
         } detail: {
             Text("Select an item")
         }
     }
 
+    // MARK: Functions
     // Add item to the list
     private func addItem() {
         withAnimation {
@@ -109,6 +182,49 @@ struct ContentView: View {
         withAnimation {
             modelContext.delete(item)
         }
+    }
+}
+
+struct SortMenuView: View {
+    @Binding var sortBy: ContentView.SortType
+    @Binding var sortOrder: ContentView.SortOrder
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            ForEach(ContentView.SortType.allCases, id: \.self) { type in
+                Button {
+                    if sortBy == type {
+                        // Toggle order if same type selected
+                        sortOrder = sortOrder == .ascending ? .descending : .ascending
+                    } else {
+                        sortBy = type
+                    }
+                } label: {
+                    HStack {
+                        Text(type.rawValue)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if sortBy == type {
+                            Image(systemName: sortOrder.systemImage)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(sortBy == type ? Color.gray.opacity(0.1) : Color.clear)
+                    )
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white)
+                .shadow(radius: 3)
+        )
+        .frame(width: 200)
     }
 }
 
