@@ -99,7 +99,8 @@ public struct BrushPickerView: View {
                                         }
                                     }
                                 ))
-                                .offset(y: -70)
+                                .offset(y: -70 + clampOffset(offset, in: geometry.size).height)
+                                .offset(x: clampOffset(offset, in: geometry.size).width)
                                 .transition(.opacity)
                                 .zIndex(2)
                             }
