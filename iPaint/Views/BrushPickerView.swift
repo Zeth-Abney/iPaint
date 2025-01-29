@@ -149,6 +149,12 @@ public struct BrushPickerView: View {
                         .zIndex(1)
                         .offset(x: clampOffset(offset, in: geometry.size).width,
                                y: clampOffset(offset, in: geometry.size).height)
+                        .onTapGesture(count: 2) {
+                            withAnimation(.easeInOut) {
+                                offset = .zero
+                                lastOffset = .zero
+                            }
+                        }
                         .gesture(
                             DragGesture(minimumDistance: 0)
                                 .onChanged { gesture in
