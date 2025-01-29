@@ -113,6 +113,7 @@ struct ContentView: View {
                 .onDelete(perform: deleteItems) // Still supports swipe-to-delete in non-edit mode
             }
             .toolbar {
+                // sort menu
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         showSortMenu.toggle()
@@ -125,11 +126,13 @@ struct ContentView: View {
                         }
                     }
                 }
+                // edit button
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(isEditing ? "Done" : "Edit") {
                         isEditing.toggle() // Toggle edit mode
                     }
                 }
+                // add item (+)
                 ToolbarItem {
                     Button(action: addItem) {
                         Label("Add Item", systemImage: "plus")
