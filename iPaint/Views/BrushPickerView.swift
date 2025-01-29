@@ -42,6 +42,16 @@ public struct BrushPickerView: View {
     @Binding var currentThickness: CGFloat
     @Binding var currentBrush: Brush
     
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var backgroundColor: Color {
+        colorScheme == .dark ? Color(.systemGray6) : .white
+    }
+    
+    private var shadowColor: Color {
+        colorScheme == .dark ? .black : .gray
+    }
+    
     private func GripHandle() -> some View {
         VStack(spacing: 4) {
             ForEach(0..<3) { _ in
@@ -58,7 +68,6 @@ public struct BrushPickerView: View {
     }
     
     private func clampOffset(_ offset: CGSize, in size: CGSize) -> CGSize {
-        // Keep at least 40 pixels visible on each edge
         let minVisiblePortion: CGFloat = 40
         
         return CGSize(
@@ -68,107 +77,117 @@ public struct BrushPickerView: View {
     }
     
     public var body: some View {
-            GeometryReader { geometry in
-                ZStack {
-                    VStack {
-                        Spacer()
-                        
-                        ZStack(alignment: .bottom) {
-                            // Settings overlays
-                            ForEach(Brush.allCases, id: \.self) { brush in
-                                if showSettingsFor == brush {
-                                    BrushSettingsToolbar(settings: Binding(
-                                        get: { brushStates[brush]?.settings ?? BrushSettings() },
-                                        set: { newSettings in
-                                            var updatedStates = brushStates
-                                            updatedStates[brush]?.settings = newSettings
-                                            brushStates = updatedStates
-                                            
-                                            if brush == selectedBrush {
-                                                currentColor = newSettings.color
-                                                currentThickness = newSettings.thickness
-                                            }
+        GeometryReader { geometry in
+            ZStack {
+                VStack {
+                    Spacer()
+                    
+                    ZStack(alignment: .bottom) {
+                        // Settings overlays
+                        ForEach(Brush.allCases, id: \.self) { brush in
+                            if showSettingsFor == brush {
+                                BrushSettingsToolbar(settings: Binding(
+                                    get: { brushStates[brush]?.settings ?? BrushSettings() },
+                                    set: { newSettings in
+                                        var updatedStates = brushStates
+                                        updatedStates[brush]?.settings = newSettings
+                                        brushStates = updatedStates
+                                        
+                                        if brush == selectedBrush {
+                                            currentColor = newSettings.color
+                                            currentThickness = newSettings.thickness
                                         }
-                                    ))
-                                    .offset(y: -70)
-                                    .transition(.opacity)
-                                    .zIndex(2) // Highest z-index
-                                }
+                                    }
+                                ))
+                                .offset(y: -70)
+                                .transition(.opacity)
+                                .zIndex(2)
                             }
-                            
-                            // Main toolbar container
-                            VStack {
-                                // Brush toolbar with grips
-                                HStack(spacing: 0) {
-                                    GripHandle()
-                                        .padding(.horizontal, 4)
-                                    
-                                    HStack(alignment: .center, spacing: 12) {
-                                        ForEach(Brush.allCases, id: \.self) { brush in
-                                            Button {
-                                                if selectedBrush == brush {
-                                                    showSettingsFor = showSettingsFor == brush ? nil : brush
-                                                } else {
-                                                    selectedBrush = brush
-                                                    currentBrush = brush
-                                                    showSettingsFor = nil
-                                                    if let settings = brushStates[brush]?.settings {
-                                                        currentColor = settings.color
-                                                        currentThickness = settings.thickness
-                                                    }
-                                                }
-                                            } label: {
-                                                Text(brush.rawValue)
-                                                    .font(.title2)
-                                                    .padding(8)
-                                                    .background(selectedBrush == brush ? Color.gray.opacity(0.2) : Color.clear)
-                                                    .cornerRadius(6)
-                                            }
-                                        }
-                                    }
-                                    .padding(.horizontal, 8)
-                                    
-                                    GripHandle()
-                                        .padding(.horizontal, 4)
-                                }
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .shadow(radius: 2)
-                            }
-                            .zIndex(1) // Lower z-index
-                            .offset(x: clampOffset(offset, in: geometry.size).width,
-                                   y: clampOffset(offset, in: geometry.size).height)
-                            .gesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { gesture in
-                                        if showSettingsFor == nil {
-                                            let newOffset = CGSize(
-                                                width: lastOffset.width + gesture.translation.width,
-                                                height: lastOffset.height + gesture.translation.height
-                                            )
-                                            offset = clampOffset(newOffset, in: geometry.size)
-                                        }
-                                    }
-                                    .onEnded { _ in
-                                        if showSettingsFor == nil {
-                                            lastOffset = offset
-                                        }
-                                    }
-                            )
                         }
+                        
+                        // Main toolbar container
+                        VStack {
+                            HStack(spacing: 0) {
+                                GripHandle()
+                                    .padding(.horizontal, 4)
+                                
+                                HStack(alignment: .center, spacing: 12) {
+                                    ForEach(Brush.allCases, id: \.self) { brush in
+                                        Button {
+                                            if selectedBrush == brush {
+                                                showSettingsFor = showSettingsFor == brush ? nil : brush
+                                            } else {
+                                                selectedBrush = brush
+                                                currentBrush = brush
+                                                showSettingsFor = nil
+                                                if let settings = brushStates[brush]?.settings {
+                                                    currentColor = settings.color
+                                                    currentThickness = settings.thickness
+                                                }
+                                            }
+                                        } label: {
+                                            Text(brush.rawValue)
+                                                .font(.title2)
+                                                .padding(8)
+                                                .background(selectedBrush == brush ?
+                                                    (colorScheme == .dark ? Color.white.opacity(0.2) : Color.gray.opacity(0.2)) :
+                                                    Color.clear)
+                                                .cornerRadius(6)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                
+                                GripHandle()
+                                    .padding(.horizontal, 4)
+                            }
+                            .padding(.vertical, 8)
+                            .background(backgroundColor)
+                            .cornerRadius(10)
+                            .shadow(color: shadowColor.opacity(0.3), radius: 2)
+                        }
+                        .zIndex(1)
+                        .offset(x: clampOffset(offset, in: geometry.size).width,
+                               y: clampOffset(offset, in: geometry.size).height)
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { gesture in
+                                    if showSettingsFor == nil {
+                                        let newOffset = CGSize(
+                                            width: lastOffset.width + gesture.translation.width,
+                                            height: lastOffset.height + gesture.translation.height
+                                        )
+                                        offset = clampOffset(newOffset, in: geometry.size)
+                                    }
+                                }
+                                .onEnded { _ in
+                                    if showSettingsFor == nil {
+                                        lastOffset = offset
+                                    }
+                                }
+                        )
                     }
-                    .padding(.bottom, 20)
-                    .frame(maxWidth: .infinity, alignment: .center)
                 }
+                .padding(.bottom, 20)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .ignoresSafeArea()
         }
+        .ignoresSafeArea()
+    }
 }
 
 // brush settings popover
 struct BrushSettingsToolbar: View {
     @Binding var settings: BrushSettings
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var backgroundColor: Color {
+        colorScheme == .dark ? Color(.systemGray6) : .white
+    }
+    
+    private var shadowColor: Color {
+        colorScheme == .dark ? .black : .gray
+    }
     
     var body: some View {
         HStack(alignment: .center, spacing: 20) {
@@ -196,8 +215,8 @@ struct BrushSettingsToolbar: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.white)
-                .shadow(radius: 3)
+                .fill(backgroundColor)
+                .shadow(color: shadowColor.opacity(0.3), radius: 3)
         )
         .transition(.opacity)
         .animation(.easeInOut, value: settings.thickness)

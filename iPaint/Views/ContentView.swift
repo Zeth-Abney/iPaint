@@ -17,7 +17,7 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-//    @Query private var items: [Item]
+    @Environment(\.colorScheme) private var colorScheme // Add dark mode support
     @Query(sort: \Item.itemIndex, order: .reverse) private var items: [Item]
     @Query private var metadata: [AppMetadata]
     @State private var isEditing: Bool = false // Track edit mode status
@@ -47,30 +47,30 @@ struct ContentView: View {
     }
 
     private func getMetadata() -> AppMetadata {
-            if let existing = metadata.first {
-                return existing
-            }
-        let newMetadata = AppMetadata()
-            modelContext.insert(newMetadata)
-            return newMetadata
+        if let existing = metadata.first {
+            return existing
         }
+        let newMetadata = AppMetadata()
+        modelContext.insert(newMetadata)
+        return newMetadata
+    }
     
     // Computed property for sorted items
-   private var sortedItems: [Item] {
-       var result = items
-       switch sortBy {
-       case .itemIndex:
-           result.sort { sortOrder == .ascending ? $0.itemIndex < $1.itemIndex : $0.itemIndex > $1.itemIndex }
-       case .title:
-           result.sort { sortOrder == .ascending ? $0.title < $1.title : $0.title > $1.title }
-       case .dateCreated:
-           result.sort { sortOrder == .ascending ? $0.timestamp < $1.timestamp : $0.timestamp > $1.timestamp }
-       case .lastEdited:
-           result.sort { sortOrder == .ascending ? $0.lastEdited < $1.lastEdited : $0.lastEdited > $1.lastEdited }
-       }
-       
-       return result
-   }
+    private var sortedItems: [Item] {
+        var result = items
+        switch sortBy {
+        case .itemIndex:
+            result.sort { sortOrder == .ascending ? $0.itemIndex < $1.itemIndex : $0.itemIndex > $1.itemIndex }
+        case .title:
+            result.sort { sortOrder == .ascending ? $0.title < $1.title : $0.title > $1.title }
+        case .dateCreated:
+            result.sort { sortOrder == .ascending ? $0.timestamp < $1.timestamp : $0.timestamp > $1.timestamp }
+        case .lastEdited:
+            result.sort { sortOrder == .ascending ? $0.lastEdited < $1.lastEdited : $0.lastEdited > $1.lastEdited }
+        }
+        
+        return result
+    }
     
     var body: some View {
         NavigationSplitView {
@@ -191,6 +191,11 @@ struct ContentView: View {
 struct SortMenuView: View {
     @Binding var sortBy: ContentView.SortType
     @Binding var sortOrder: ContentView.SortOrder
+    @Environment(\.colorScheme) private var colorScheme // Add dark mode support
+    
+    private var menuBackgroundColor: Color {
+        colorScheme == .dark ? Color(.systemGray6) : .white
+    }
     
     var body: some View {
         VStack(spacing: 8) {
@@ -216,7 +221,9 @@ struct SortMenuView: View {
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(sortBy == type ? Color.gray.opacity(0.1) : Color.clear)
+                            .fill(sortBy == type ?
+                                  (colorScheme == .dark ? Color.white.opacity(0.1) : Color.gray.opacity(0.1)) :
+                                  Color.clear)
                     )
                 }
             }
@@ -224,7 +231,7 @@ struct SortMenuView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.white)
+                .fill(menuBackgroundColor)
                 .shadow(radius: 3)
         )
         .frame(width: 200)

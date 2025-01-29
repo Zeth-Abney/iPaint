@@ -45,28 +45,42 @@ struct Line: Codable {
     }
     
     init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            points = try container.decode([CGPoint].self, forKey: .points)
-            lineWidth = try container.decode(Double.self, forKey: .lineWidth)
-            type = try container.decode(Brush.self, forKey: .type)
-            
-            let components = try container.decode([CGFloat].self, forKey: .colorComponents)
-            color = Color(UIColor(red: components[0],
-                                green: components[1],
-                                blue: components[2],
-                                alpha: components[3]))
-        }
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        points = try container.decode([CGPoint].self, forKey: .points)
+        lineWidth = try container.decode(Double.self, forKey: .lineWidth)
+        type = try container.decode(Brush.self, forKey: .type)
+        
+        let components = try container.decode([CGFloat].self, forKey: .colorComponents)
+        color = Color(UIColor(red: components[0],
+                            green: components[1],
+                            blue: components[2],
+                            alpha: components[3]))
+    }
 }
 
 // MARK: main item view content
 struct ItemDetailView: View {
     @Bindable var item: Item
+    @Environment(\.colorScheme) private var colorScheme // Add dark mode support
     @State private var showPopup: Bool = false
     @State private var currentLine = Line()
     @State private var lines: [Line] = []
     @State private var currentColor: Color = .black
     @State private var currentThickness: CGFloat = 2.0
     @State private var currentBrush: Brush = .pen
+    
+    // Computed properties for dark mode colors
+    private var backgroundColor: Color {
+        colorScheme == .dark ? Color(.systemBackground) : .white
+    }
+    
+    private var textColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+    
+    private var popupBackgroundColor: Color {
+        colorScheme == .dark ? Color(.systemGray6) : .white
+    }
     
     init(item: Item) {
         self.item = item
@@ -117,6 +131,7 @@ struct ItemDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .top)
                     .multilineTextAlignment(.center)
                     .textFieldStyle(PlainTextFieldStyle())
+                    .foregroundColor(textColor) // Add dynamic text color
 
                 Canvas { context, size in
                     for line in lines {
@@ -131,7 +146,7 @@ struct ItemDetailView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                .border(Color.blue)
+                .background(backgroundColor) // Add dynamic background color
                 .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
                     .onChanged({ value in
                         let newPoint = value.location
@@ -175,7 +190,6 @@ struct ItemDetailView: View {
                 )
                 .ignoresSafeArea()
             }
-//            .padding(.horizontal)
             BrushPickerView(currentColor: $currentColor,
                           currentThickness: $currentThickness,
                           currentBrush: $currentBrush)
@@ -191,13 +205,15 @@ struct ItemDetailView: View {
                 }) {
                     Image(systemName: "info.circle")
                         .font(.title2)
+                        .foregroundColor(textColor) // Add dynamic color
                 }
             }
         }
+        .background(backgroundColor) // Add dynamic background color
     }
     
     // MARK: info popup
-private var popupOverlay: some View {
+    private var popupOverlay: some View {
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
@@ -209,11 +225,11 @@ private var popupOverlay: some View {
                 Text("Item Details")
                     .font(.title2)
                     .bold()
-                    .foregroundColor(.black)
+                    .foregroundColor(textColor)
                 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Title: \(item.title)")
-                        .foregroundColor(.black)
+                        .foregroundColor(textColor)
                     
                     Text("Item # \(item.itemIndex)")
                         .foregroundColor(.gray)
@@ -226,7 +242,7 @@ private var popupOverlay: some View {
                     
                     Text("Details:")
                         .font(.headline)
-                        .foregroundColor(.black)
+                        .foregroundColor(textColor)
                     
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: Binding(
@@ -238,7 +254,7 @@ private var popupOverlay: some View {
                         ))
                         .frame(height: 100)
                         .padding(.top, 8)
-                        .foregroundColor(.black)
+                        .foregroundColor(textColor)
                         .background(Color.clear)
                         
                         if (item.details ?? "").isEmpty {
@@ -253,7 +269,7 @@ private var popupOverlay: some View {
                 .padding()
             }
             .padding(.horizontal, 30)
-            .background(Color.white)
+            .background(popupBackgroundColor)
             .frame(maxWidth: UIScreen.main.bounds.width - 60)
             .cornerRadius(10)
             .shadow(radius: 10)
